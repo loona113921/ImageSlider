@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Улучшенный слайдер изображений</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            touch-action: pan-y;
+        }
+
+        .slider-container {
+            max-width: 900px;
+            width: 100%;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .slider {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .slides-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #eee;
+        }
+
+        .slide img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #2c3e50;
+            position: relative;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .counter {
+            color: white;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .thumbnails {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            background-color: #ecf0f1;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .thumbnail {
+            width: 60px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.3s;
+            object-fit: cover;
+            border: 2px solid transparent;
+        }
+
+        .thumbnail:hover, .thumbnail.active {
+            opacity: 1;
+            border-color: #3498db;
+        }
+
+        .autoplay-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            color: white;
+            font-size: 14px;
+        }
+
+        .autoplay-toggle {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background-color: #95a5a6;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .autoplay-toggle.active {
+            background-color: #3498db;
+        }
+
+        .autoplay-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .autoplay-toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        @media (max-width: 768px) {
+            .slider {
+                height: 350px;
+            }
+
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+
+            .counter {
+                font-size: 14px;
+            }
+
+            .thumbnail {
+                width: 50px;
+                height: 35px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slider {
+                height: 250px;
+            }
+
+            .controls {
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+            }
+
+            .counter {
+                position: static;
+                transform: none;
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .autoplay-control {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="slider-container">
+    <div class="slider" id="slider">
+        <div class="slides-wrapper" id="slidesWrapper">
+            <div class="slide">
+                <img src="photos/Image1.jpg" alt="Котик 1">
+            </div>
+            <div class="slide">
+                <img src="photos/Image2.jpg" alt="Котик 2">
+            </div>
+            <div class="slide">
+                <img src="photos/Image3.jpg" alt="Котик 3">
+            </div>
+            <div class="slide">
+                <img src="photos/Image4.jpg" alt="Котик 4">
+            </div>
+            <div class="slide">
+                <img src="photos/Image5.jpg" alt="Котик 5">
+            </div>
+        </div>
+    </div>
+
+    <div class="thumbnails" id="thumbnails">
+        <!-- Миниатюры будут добавлены через JavaScript -->
+    </div>
+
+    <div class="controls">
+        <button class="btn prev-btn">Назад</button>
+        <div class="counter">Изображение 1 из 5</div>
+        <div class="autoplay-control">
+            <span>Автопрокрутка</span>
+            <div class="autoplay-toggle"></div>
+        </div>
+        <button class="btn next-btn">Вперед</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('slider');
+        const slidesWrapper = document.getElementById('slidesWrapper');
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.querySelector('.prev-btn');
+        const nextBtn = document.querySelector('.next-btn');
+        const counter = document.querySelector('.counter');
+        const thumbnailsContainer = document.getElementById('thumbnails');
+        const autoplayToggle = document.querySelector('.autoplay-toggle');
+
+        let currentSlide = 0;
+        let autoplayInterval;
+        const totalSlides = slides.length;
+        const autoplayDelay = 3000; // 3 секунды
+
+        // Создаем миниатюры
+        slides.forEach((slide, index) => {
+            const imgSrc = slide.querySelector('img').src;
+            const thumbnail = document.createElement('img');
+            thumbnail.className = 'thumbnail';
+            thumbnail.src = imgSrc;
+            thumbnail.dataset.index = index;
+
+            if (index === 0) thumbnail.classList.add('active');
+
+            thumbnail.addEventListener('click', () => {
+                goToSlide(index);
+            });
+
+            thumbnailsContainer.appendChild(thumbnail);
+        });
+
+        // Инициализация слайдера
+        updateCounter();
+        startAutoplay();
+
+        // Функция для обновления счетчика
+        function updateCounter() {
+            counter.textContent = `Изображение ${currentSlide + 1} из ${totalSlides}`;
+
+            // Обновляем активную миниатюру
+            document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
+                thumb.classList.toggle('active', index === currentSlide);
+            });
+        }
+
+        // Функция для перехода к конкретному слайду
+        function goToSlide(index) {
+            currentSlide = index;
+            slidesWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+            updateCounter();
+        }
+
+        // Функция для показа следующего слайда
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            slidesWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+            updateCounter();
+        }
+
+        // Функция для показа предыдущего слайда
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            slidesWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+            updateCounter();
+        }
+
+        // Автопрокрутка
+        function startAutoplay() {
+            autoplayInterval = setInterval(nextSlide, autoplayDelay);
+            autoplayToggle.classList.add('active');
+        }
+
+        function stopAutoplay() {
+            clearInterval(autoplayInterval);
+            autoplayToggle.classList.remove('active');
+        }
+
+        // Обработчики событий для кнопок
+        nextBtn.addEventListener('click', function() {
+            nextSlide();
+            stopAutoplay();
+        });
+
+        prevBtn.addEventListener('click', function() {
+            prevSlide();
+            stopAutoplay();
+        });
+
+        // Переключение автопрокрутки
+        autoplayToggle.addEventListener('click', function() {
+            if (autoplayToggle.classList.contains('active')) {
+                stopAutoplay();
+            } else {
+                startAutoplay();
+            }
+        });
+
+        // Обработчики клавиатуры
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') {
+                nextSlide();
+                stopAutoplay();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+                stopAutoplay();
+            }
+        });
+
+        // Swipe для мобильных устройств
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        slider.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        slider.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+            stopAutoplay();
+        }, {passive: true});
+
+        function handleSwipe() {
+            const threshold = 50;
+            if (touchEndX < touchStartX - threshold) {
+                nextSlide();
+            } else if (touchEndX > touchStartX + threshold) {
+                prevSlide();
+            }
+        }
+
+        // Пауза автопрокрутки при наведении
+        slider.addEventListener('mouseenter', stopAutoplay);
+        slider.addEventListener('mouseleave', () => {
+            if (autoplayToggle.classList.contains('active')) {
+                startAutoplay();
+            }
+        });
+    });
+</script>
+</body>
+</html>
